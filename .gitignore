@@ -1,0 +1,7 @@
+# Dependencies & Temp
+node_modules/
+.env
+__pycache__/
+*.pyc
+*.tmp
+*.log

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>3D Render Worker</title>
+</head>
+<body style="background:#000; margin:0; padding:0; overflow:hidden;">
+  <canvas id="c3d" width="720" height="1280"></canvas>
+  <canvas id="ccomp" width="720" height="1280" style="display:none;"></canvas>
+
+  <script src="three.min.js"></script>
+  <script src="GLTFLoader.js"></script>
+  <script src="audio_envelope.js"></script>
+  <script src="engine_3d.js"></script>
+  <script>
+    const c3d = document.getElementById('c3d');
+    const ccomp = document.getElementById('ccomp');
+    const ctx = ccomp.getContext('2d');
+    const width = 720;
+    const height = 1280;
+
+    const sitcom = Sitcom3D.init(c3d, width, height);
+
+    const subtitles = [
+      { start: 0.5, end: 4.6, speaker: 'LEO', color: '#f59e0b', text: "Chip, why did the smart dishwasher just order 400 lbs of dry ice?!" },
+      { start: 5.0, end: 10.8, speaker: 'CHIP', color: '#00f0ff', text: "Thermodynamic optimization! Solid carbon dioxide sublimates grease at sub-zero velocities." },
+      { start: 11.2, end: 15.8, speaker: 'LEO', color: '#f59e0b', text: "My dishes are literally frozen to the racks! The lasagna plate is a cryo-hazard!" },
+      { start: 16.2, end: 22.4, speaker: 'CHIP', color: '#00f0ff', text: "A zero-temperature state ensures zero bacterial entropy, Leo. You are welcome." },
+      { start: 22.8, end: 25.5, speaker: 'LEO', color: '#f59e0b', text: "I just wanted clean forks, man... not a glacier!" },
+      { start: 25.6, end: 28.8, speaker: 'CHIP', color: '#00f0ff', text: "*Glacier protocol complete. Forks are now immortal.*" }
+    ];
+
+    function drawOverlay(time) {
+      ctx.drawImage(c3d, 0, 0);
+
+      // Top Header Pill
+      ctx.save();
+      ctx.fillStyle = 'rgba(13, 17, 23, 0.85)';
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, 36, 40, width - 72, 60, 14);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = 'bold 22px Arial, sans-serif';
+      ctx.fillStyle = '#00f0ff';
+      ctx.fillText('THE LOCALHOST • 3D', 56, 78);
+
+      ctx.fillStyle = '#ff0055';
+      roundRect(ctx, width - 170, 52, 115, 36, 8);
+      ctx.fill();
+      ctx.font = 'bold 16px Arial, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('EP 01 • 3D', width - 158, 77);
+      ctx.restore();
+
+      // Subtitle dialogue card
+      const match = subtitles.find(s => time >= s.start && time <= s.end);
+      if (match) {
+        ctx.save();
+        const cardY = height - 200;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.strokeStyle = match.color;
+        ctx.lineWidth = 3;
+        roundRect(ctx, 40, cardY, width - 80, 140, 16);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 18px Arial, sans-serif';
+        ctx.fillStyle = match.color;
+        ctx.fillText(match.speaker, 65, cardY + 36);
+
+        ctx.font = 'bold 22px Arial, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        wrapText(ctx, match.text, 65, cardY + 74, width - 130, 30);
+        ctx.restore();
+      }
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line, x, y);
+          line = words[n] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, y);
+    }
+
+    const totalFrames = 864; // 28.8s * 30fps
+    let currentFrame = 0;
+
+    async function processNextFrame() {
+      if (currentFrame >= totalFrames) {
+        await fetch('/done', { method: 'POST' });
+        console.log('Rendering complete!');
+        return;
+      }
+
+      const t = currentFrame / 30.0;
+      sitcom.updateFrame(t);
+      drawOverlay(t);
+
+      ccomp.toBlob(async (blob) => {
+        await fetch('/frame?f=' + currentFrame, {
+          method: 'POST',
+          body: blob
+        });
+        currentFrame++;
+        processNextFrame();
+      }, 'image/jpeg', 0.92);
+    }
+
+    window.addEventListener('load', async () => {
+      await sitcom.ready;
+      setTimeout(processNextFrame, 200);
+    });
+  </script>
+</body>
+</html>

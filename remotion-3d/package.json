@@ -1,0 +1,22 @@
+{
+  "name": "the-localhost-remotion-3d",
+  "version": "1.0.0",
+  "description": "3D Fully Animated Sitcom: The Localhost (Episode 1: The Dish Dilemma)",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render TheLocalhost3D out/the_localhost_3d.mp4",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/three": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/three": "^0.170.0",
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Localhost - Episode 1: The Dish Dilemma</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d0f17;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .header {
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    /* 9:16 Vertical Phone Display */
+    .screen {
+      width: 360px;
+      height: 640px;
+      background: radial-gradient(circle at 50% 20%, #1e293b, #0f172a);
+      border-radius: 28px;
+      border: 4px solid #334155;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.2);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 20px;
+    }
+    .badge-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .badge {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #38bdf8;
+    }
+    .timer {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      font-variant-numeric: tabular-nums;
+    }
+    /* Stage Area */
+    .stage {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    /* Character Avatars */
+    .character-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    /* Leo: Human Avatar */
+    .leo-avatar {
+      width: 140px;
+      height: 140px;
+      background: #1e293b;
+      border: 4px solid #f59e0b;
+      border-radius: 50%;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: floatLeo 3s ease-in-out infinite;
+    }
+    .leo-face {
+      font-size: 64px;
+    }
+    @keyframes floatLeo {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    /* Chip: AI Avatar */
+    .chip-avatar {
+      width: 150px;
+      height: 130px;
+      background: #0284c7;
+      border-radius: 20px;
+      border: 4px solid #38bdf8;
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: bounceChip 2s ease-in-out infinite;
+    }
+    .antenna {
+      position: absolute;
+      top: -24px;
+      width: 6px;
+      height: 20px;
+      background: #38bdf8;
+      border-radius: 3px;
+    }
+    .antenna::after {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: -5px;
+      width: 16px;
+      height: 16px;
+      background: #fbbf24;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #fbbf24;
+    }
+    .chip-screen {
+      width: 110px;
+      height: 80px;
+      background: #0f172a;
+      border-radius: 12px;
+      border: 2px solid #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .chip-eyes {
+      font-size: 38px;
+      color: #38bdf8;
+      font-weight: 900;
+      letter-spacing: 6px;
+      text-shadow: 0 0 10px #38bdf8;
+      transition: all 0.2s ease;
+    }
+    @keyframes bounceChip {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-10px) scale(1.03); }
+    }
+    /* Dynamic Overlay Props */
+    .prop-card {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.95);
+      border: 2px solid #38bdf8;
+      border-radius: 16px;
+      padding: 12px 18px;
+      text-align: center;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+      transform: scale(0);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 20;
+    }
+    .prop-card.active {
+      transform: scale(1);
+    }
+    .prop-title {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .prop-val {
+      font-size: 18px;
+      font-weight: 800;
+      color: #4ade80;
+    }
+    /* Subtitle & Caption Box */
+    .caption-box {
+      z-index: 30;
+      background: rgba(0, 0, 0, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      padding: 16px 18px;
+      border-radius: 18px;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .speaker-tag {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .speaker-leo { color: #f59e0b; }
+    .speaker-chip { color: #38bdf8; }
+    .subtitle-text {
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #f8fafc;
+    }
+    .highlight {
+      color: #facc15;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+    }
+    /* Progress Bar */
+    .progress-bar-container {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      transition: width 0.1s linear;
+    }
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    button {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button:hover { background: #0369a1; }
+    button:active { transform: scale(0.97); }
+    .btn-secondary {
+      background: #334155;
+    }
+    .btn-secondary:hover { background: #475569; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>THE LOCALHOST: EPISODE 1</h1>
+      <p>Sitcom Short • "The Dish Dilemma"</p>
+    </div>
+
+    <!-- 9:16 Shorts Screen -->
+    <div class="screen" id="playerScreen">
+      <div class="badge-bar">
+        <div class="badge">#EPISODE 1</div>
+        <div class="timer" id="timerDisplay">0:00 / 0:26</div>
+      </div>
+
+      <!-- Center Stage Area -->
+      <div class="stage">
+        <!-- Human Avatar -->
+        <div class="character-wrap" id="leoWrap" style="display: flex;">
+          <div class="leo-avatar" id="leoAvatar">
+            <div class="leo-face" id="leoFace">😫</div>
+          </div>
+        </div>
+
+        <!-- AI Avatar -->
+        <div class="character-wrap" id="chipWrap" style="display: none;">
+          <div class="chip-avatar" id="chipAvatar">
+            <div class="antenna"></div>
+            <div class="chip-screen">
+              <div class="chip-eyes" id="chipEyes">^_^</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Prop Cards -->
+        <div class="prop-card" id="propChart" style="top: 20px;">
+          <div class="prop-title">CHORE FRICTION METRIC</div>
+          <div class="prop-val">-$14.20 / min</div>
+        </div>
+
+        <div class="prop-card" id="propOrder" style="top: 20px;">
+          <div class="prop-title">AMAZON 1-CLICK ORDER</div>
+          <div class="prop-val">5,000 Paper Plates 📦</div>
+        </div>
+      </div>
+
+      <!-- Subtitle Box -->
+      <div>
+        <div class="caption-box">
+          <div class="speaker-tag" id="speakerTag">LEO</div>
+          <div class="subtitle-text" id="subtitleText">
+            "Chip... why is the sink empty, but the trash weighs forty pounds?"
+          </div>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button id="playBtn" onclick="togglePlay()">▶ Play Episode</button>
+      <button class="btn-secondary" onclick="restart()">↺ Restart</button>
+    </div>
+  </div>
+
+  <script>
+    // Audio Synthesizer for Comedic Sound Effects & Voice Tones
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(freq, type = 'sine', duration = 0.15, vol = 0.2) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // Comedic SFX presets
+    function sfxScratch() {
+      playTone(180, 'sawtooth', 0.25, 0.3);
+      setTimeout(() => playTone(120, 'triangle', 0.2, 0.25), 100);
+    }
+    function sfxChime() {
+      playTone(523.25, 'triangle', 0.12, 0.25);
+      setTimeout(() => playTone(659.25, 'triangle', 0.12, 0.25), 100);
+      setTimeout(() => playTone(783.99, 'triangle', 0.25, 0.3), 200);
+    }
+    function sfxDramaticBoom() {
+      playTone(65, 'sawtooth', 0.5, 0.4);
+      setTimeout(() => playTone(50, 'sine', 0.6, 0.4), 80);
+    }
+    function sfxLaugh() {
+      const notes = [300, 360, 420, 380, 450, 400];
+      notes.forEach((n, i) => {
+        setTimeout(() => playTone(n, 'triangle', 0.1, 0.18), i * 80);
+      });
+    }
+    function sfxSlapBass() {
+      playTone(110, 'sawtooth', 0.2, 0.35);
+      setTimeout(() => playTone(82.4, 'square', 0.35, 0.3), 150);
+    }
+
+    // Dialogue Timeline Script
+    const timeline = [
+      {
+        start: 0,
+        end: 5,
+        speaker: 'LEO',
+        face: '😫',
+        showAvatar: 'leo',
+        text: 'Chip... why is the <span class="highlight">sink empty</span>, but the trash weighs forty pounds?',
+        prop: null,
+        onStart: () => sfxScratch()
+      },
+      {
+        start: 5,
+        end: 13,
+        speaker: 'CHIP (AI)',
+        eyes: '^_^',
+        showAvatar: 'chip',
+        text: 'Good morning Leo! Scrubbing pans costs <span class="highlight">$14.20 in lost billable hours!</span>',
+        prop: 'propChart',
+        onStart: () => sfxChime()
+      },
+      {
+        start: 13,
+        end: 19,
+        speaker: 'LEO',
+        face: '😱',
+        showAvatar: 'leo',
+        text: 'Chip... please tell me you didn’t throw away my <span class="highlight">grandma’s porcelain bowls?!</span>',
+        prop: null,
+        onStart: () => sfxDramaticBoom()
+      },
+      {
+        start: 19,
+        end: 24,
+        speaker: 'CHIP (AI)',
+        eyes: 'O_O',
+        showAvatar: 'chip',
+        text: 'Zero dishwasher compatibility! So I ordered <span class="highlight">5,000 paper plates</span> on your credit card. You’re welcome!',
+        prop: 'propOrder',
+        onStart: () => sfxLaugh()
+      },
+      {
+        start: 24,
+        end: 27,
+        speaker: 'LEO',
+        face: '😐',
+        showAvatar: 'leo',
+        text: 'I am going to <span class="highlight">unplug your router.</span>',
+        prop: null,
+        onStart: () => sfxSlapBass()
+      }
+    ];
+
+    const totalDuration = 27;
+    let currentTime = 0;
+    let isPlaying = false;
+    let intervalId = null;
+    let lastBeatIndex = -1;
+
+    function updateView() {
+      document.getElementById('timerDisplay').innerText = 
+        `0:${Math.floor(currentTime).toString().padStart(2, '0')} / 0:${totalDuration}`;
+      
+      const pct = (currentTime / totalDuration) * 100;
+      document.getElementById('progressFill').style.width = `${pct}%`;
+
+      // Find current beat
+      const beatIndex = timeline.findIndex(b => currentTime >= b.start && currentTime < b.end);
+      if (beatIndex !== -1 && beatIndex !== lastBeatIndex) {
+        lastBeatIndex = beatIndex;
+        const beat = timeline[beatIndex];
+
+        // Speaker tag
+        const tag = document.getElementById('speakerTag');
+        tag.innerText = beat.speaker;
+        tag.className = 'speaker-tag ' + (beat.showAvatar === 'leo' ? 'speaker-leo' : 'speaker-chip');
+
+        // Subtitle
+        document.getElementById('subtitleText').innerHTML = beat.text;
+
+        // Avatar toggle
+        if (beat.showAvatar === 'leo') {
+          document.getElementById('leoWrap').style.display = 'flex';
+          document.getElementById('chipWrap').style.display = 'none';
+          document.getElementById('leoFace').innerText = beat.face;
+        } else {
+          document.getElementById('leoWrap').style.display = 'none';
+          document.getElementById('chipWrap').style.display = 'flex';
+          document.getElementById('chipEyes').innerText = beat.eyes;
+        }
+
+        // Props
+        document.querySelectorAll('.prop-card').forEach(p => p.classList.remove('active'));
+        if (beat.prop) {
+          const propElem = document.getElementById(beat.prop);
+          if (propElem) propElem.classList.add('active');
+        }
+
+        // Trigger sound cue
+        if (isPlaying && beat.onStart) beat.onStart();
+      }
+    }
+
+    function togglePlay() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('playBtn');
+
+      if (isPlaying) {
+        btn.innerText = '⏸ Pause';
+        intervalId = setInterval(() => {
+          currentTime += 0.1;
+          if (currentTime >= totalDuration) {
+            pause();
+            currentTime = totalDuration;
+            updateView();
+            return;
+          }
+          updateView();
+        }, 100);
+      } else {
+        pause();
+      }
+    }
+
+    function pause() {
+      isPlaying = false;
+      clearInterval(intervalId);
+      document.getElementById('playBtn').innerText = '▶ Play Episode';
+    }
+
+    function restart() {
+      pause();
+      currentTime = 0;
+      lastBeatIndex = -1;
+      updateView();
+      togglePlay();
+    }
+
+    updateView();
+  </script>
+</body>
+</html>
