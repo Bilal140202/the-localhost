@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Vault Zero Render Worker</title></head>
+<body style="background:#000; margin:0; padding:0; overflow:hidden;">
+  <canvas id="c3d" width="1280" height="720"></canvas>
+  <canvas id="ccomp" width="1280" height="720" style="display:none;"></canvas>
+
+  <script src="three.min.js"></script>
+  <script src="GLTFLoader.js"></script>
+  <script src="audio_envelope.js"></script>
+  <script src="engine_3d.js"></script>
+  <script>
+    const c3d = document.getElementById('c3d');
+    const ccomp = document.getElementById('ccomp');
+    const ctx = ccomp.getContext('2d');
+    const width = 1280, height = 720;
+
+    const show = VaultZero3D.init(c3d, width, height);
+
+    const subtitles = [
+      { start: 3.0, end: 7.9, speaker: 'VEX', color: '#38bdf8', text: "Lasers are live, Pip. Tell me you bypassed the biometric firewall." },
+      { start: 8.6, end: 16.0, speaker: 'PIP', color: '#10b981', text: "I bypassed it! ...Okay, technically I guessed the password. It was 'Password123'." },
+      { start: 17.5, end: 22.0, speaker: 'VEX', color: '#38bdf8', text: "A top-secret subterranean bio-vault uses 'Password123'." },
+      { start: 23.2, end: 28.6, speaker: 'PIP', color: '#10b981', text: "Wait... why is the classified bio-core in a Tupperware container labeled 'DO NOT EAT'?" },
+      { start: 30.4, end: 35.75, speaker: 'VEX', color: '#38bdf8', text: "We just dodged forty-two thermal lasers... for the Director's artisanal sourdough starter." },
+      { start: 37.35, end: 43.65, speaker: 'PIP', color: '#10b981', text: "To be fair, it smells incredible. Do we grab the butter, or trigger the self-destruct?" }
+    ];
+
+    function drawFriendsTitle(ctx, title, subtitle, alpha) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = 'rgba(7, 11, 18, 0.72)';
+      ctx.fillRect(0, 0, width, height);
+
+      // Classic Friends-style spaced lettering with colored dots!
+      const letters = ['V', 'A', 'U', 'L', 'T', ' ', 'Z', 'E', 'R', 'O'];
+      const dotColors = ['#ef4444', '#38bdf8', '#facc15', '#22c55e', '#ef4444', null, '#38bdf8', '#facc15', '#ef4444', '#22c55e'];
+      ctx.font = '900 72px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      const startX = width / 2 - 360;
+      const stepX = 80;
+      letters.forEach((ch, idx) => {
+        if (ch !== ' ') {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(ch, startX + idx * stepX, height / 2 - 10);
+          if (idx < letters.length - 1 && letters[idx + 1] !== ' ' && dotColors[idx]) {
+            ctx.fillStyle = dotColors[idx];
+            ctx.beginPath();
+            ctx.arc(startX + idx * stepX + stepX / 2, height / 2 - 32, 7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      });
+
+      ctx.font = 'bold 26px Arial, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(subtitle, width / 2, height / 2 + 52);
+      ctx.restore();
+    }
+
+    function drawOverlay(time) {
+      ctx.drawImage(c3d, 0, 0);
+
+      // Cold Open Title Card (0.0 - 3.0s)
+      if (time < 3.0) {
+        const alpha = time < 2.3 ? 1.0 : Math.max(0.0, (3.0 - time) / 0.7);
+        drawFriendsTitle(ctx, 'VAULT ZERO', 'EPISODE 1  •  THE CLASSIFIED CORE', alpha);
+        return;
+      }
+
+      // Outro Credits Card (46.0 - 50.0s)
+      if (time >= 46.0) {
+        const alpha = Math.min(1.0, (time - 46.0) / 0.6);
+        drawFriendsTitle(ctx, 'VAULT ZERO', 'CREATED BY BILAL  •  NEXT EPISODE COMING SOON', alpha);
+        return;
+      }
+
+      // Clean Cinema Subtitles
+      const match = subtitles.find(s => time >= s.start && time <= s.end);
+      if (match) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(7, 11, 18, 0.82)';
+        ctx.strokeStyle = match.color;
+        ctx.lineWidth = 2;
+        const boxW = 920, boxH = 84;
+        const bx = (width - boxW) / 2, by = height - 115;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, boxW, boxH, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 16px Arial, sans-serif';
+        ctx.fillStyle = match.color;
+        ctx.fillText(match.speaker, bx + 24, by + 28);
+
+        ctx.font = '600 24px Arial, sans-serif';
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillText(match.text, bx + 24, by + 62);
+        ctx.restore();
+      }
+    }
+
+    const totalFrames = 1500; // 50.0s * 30fps
+    let currentFrame = 0;
+
+    async function processNextFrame() {
+      if (currentFrame >= totalFrames) {
+        await fetch('/done', { method: 'POST' });
+        return;
+      }
+      const t = currentFrame / 30.0;
+      show.updateFrame(t);
+      drawOverlay(t);
+
+      ccomp.toBlob(async (blob) => {
+        await fetch('/frame?f=' + currentFrame, { method: 'POST', body: blob });
+        currentFrame++;
+        processNextFrame();
+      }, 'image/jpeg', 0.92);
+    }
+
+    window.addEventListener('load', async () => {
+      await show.ready;
+      setTimeout(processNextFrame, 250);
+    });
+  </script>
+</body>
+</html>
