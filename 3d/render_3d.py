@@ -87,7 +87,7 @@ print("[3D Render] Launching Chrome WebGL render engine...")
 chrome_proc = subprocess.Popen(chrome_args)
 
 # Wait for completion or timeout
-finished = done_event.wait(timeout=180)
+finished = done_event.wait(timeout=450)
 if not finished:
     print("[3D Render] Warning: Render timed out!")
 

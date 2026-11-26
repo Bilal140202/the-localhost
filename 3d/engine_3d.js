@@ -155,11 +155,13 @@
     let leoMixer = null;
     let leoActions = {};
     let leoMorphMeshes = [];
+    let coffeeSteam = [];
 
     let chipRoot = null;
     let chipMixer = null;
     let chipActions = {};
     let chipMorphMeshes = [];
+    let chipAntennaOrb = null;
 
     function loadGLB(url) {
       return new Promise((resolve, reject) => {
@@ -179,6 +181,8 @@
       leoRoot.position.set(-0.75, 0, 0.25);
       leoRoot.rotation.y = 0.28;
       leoRoot.scale.setScalar(1.0);
+      let leoHeadBone = null;
+      let leoRightHandBone = null;
       leoRoot.traverse(obj => {
         if (obj.isMesh) {
           obj.castShadow = true;
@@ -187,8 +191,70 @@
             leoMorphMeshes.push(obj);
           }
         }
+        if (obj.isBone) {
+          if (obj.name === 'Head') leoHeadBone = obj;
+          if (obj.name === 'RightHand') leoRightHandBone = obj;
+        }
       });
       scene.add(leoRoot);
+
+      // Attach sleek rectangular glasses to Leo's Head bone
+      if (leoHeadBone) {
+        const glassesGroup = new THREE.Group();
+        glassesGroup.position.set(0, 0.088, 0.112);
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.3, metalness: 0.6 });
+        const lensMat = new THREE.MeshStandardMaterial({
+          color: 0x88e5ff, transparent: true, opacity: 0.22, roughness: 0.1, metalness: 0.1, side: THREE.DoubleSide
+        });
+        function makeLens(xPos) {
+          const g = new THREE.Group();
+          g.position.x = xPos;
+          const top = new THREE.Mesh(new THREE.BoxGeometry(0.046, 0.005, 0.006), frameMat);
+          top.position.y = 0.016;
+          const bot = new THREE.Mesh(new THREE.BoxGeometry(0.046, 0.004, 0.006), frameMat);
+          bot.position.y = -0.016;
+          const outB = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.036, 0.006), frameMat);
+          outB.position.x = xPos < 0 ? -0.021 : 0.021;
+          const inB = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.036, 0.006), frameMat);
+          inB.position.x = xPos < 0 ? 0.021 : -0.021;
+          const temple = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.004, 0.09), frameMat);
+          temple.position.set(xPos < 0 ? -0.021 : 0.021, 0.012, -0.046);
+          const lens = new THREE.Mesh(new THREE.PlaneGeometry(0.038, 0.028), lensMat);
+          g.add(top, bot, outB, inB, temple, lens);
+          return g;
+        }
+        const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.004, 0.006), frameMat);
+        bridge.position.y = 0.01;
+        glassesGroup.add(makeLens(-0.034), makeLens(0.034), bridge);
+        leoHeadBone.add(glassesGroup);
+      }
+
+      // Attach steaming coffee mug to Leo's RightHand bone
+      if (leoRightHandBone) {
+        const mugGroup = new THREE.Group();
+        mugGroup.position.set(0.02, 0.075, 0.035);
+        mugGroup.rotation.set(Math.PI / 2, 0, -0.3);
+        const mugMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.25, metalness: 0.1 });
+        const mugBody = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.038, 0.095, 16), mugMat);
+        const mugCoffee = new THREE.Mesh(new THREE.CircleGeometry(0.036, 14), new THREE.MeshBasicMaterial({ color: 0x3b1e0a }));
+        mugCoffee.rotation.x = -Math.PI / 2;
+        mugCoffee.position.y = 0.049;
+        const mugHandle = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.007, 8, 14, Math.PI), mugMat);
+        mugHandle.rotation.z = -Math.PI / 2;
+        mugHandle.position.set(0.042, 0, 0);
+        mugGroup.add(mugBody, mugCoffee, mugHandle);
+
+        for (let i = 0; i < 4; i++) {
+          const wisp = new THREE.Mesh(
+            new THREE.SphereGeometry(0.016, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 })
+          );
+          wisp.position.set((i - 1.5) * 0.01, 0.07 + i * 0.03, 0);
+          mugGroup.add(wisp);
+          coffeeSteam.push(wisp);
+        }
+        leoRightHandBone.add(mugGroup);
+      }
 
       leoMixer = new THREE.AnimationMixer(leoRoot);
       if (idleGltf.animations.length) {
@@ -209,6 +275,7 @@
       chipRoot.position.set(0.85, 0, 0.35);
       chipRoot.rotation.y = -0.35;
       chipRoot.scale.setScalar(0.36);
+      let chipHeadBone = null;
       chipRoot.traverse(obj => {
         if (obj.isMesh) {
           obj.castShadow = true;
@@ -217,8 +284,29 @@
             chipMorphMeshes.push(obj);
           }
         }
+        if (obj.isBone && obj.name === 'Head') {
+          chipHeadBone = obj;
+        }
       });
       scene.add(chipRoot);
+
+      // Attach glowing cyan beacon antenna to Chip's Head bone
+      if (chipHeadBone) {
+        const antGroup = new THREE.Group();
+        antGroup.position.set(0, 1.35, 0);
+        const stem = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.04, 0.06, 0.45, 12),
+          new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 })
+        );
+        stem.position.y = 0.22;
+        chipAntennaOrb = new THREE.Mesh(
+          new THREE.SphereGeometry(0.14, 16, 16),
+          new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+        );
+        chipAntennaOrb.position.y = 0.48;
+        antGroup.add(stem, chipAntennaOrb);
+        chipHeadBone.add(antGroup);
+      }
 
       chipMixer = new THREE.AnimationMixer(chipRoot);
       chipGltf.animations.forEach(clip => {
@@ -259,6 +347,17 @@
       const env = root.AUDIO_ENVELOPE || [];
       const fIdx = Math.min(env.length - 1, Math.max(0, Math.floor(time * 30)));
       const audioAmp = env.length ? env[fIdx] : 0;
+
+      // Animate coffee steam wisps & Chip antenna beacon
+      coffeeSteam.forEach((wisp, idx) => {
+        const cycle = (time * 0.9 + idx * 0.25) % 1.0;
+        wisp.position.y = 0.06 + cycle * 0.14;
+        wisp.position.x = Math.sin(time * 4 + idx) * 0.012;
+        wisp.material.opacity = (1.0 - cycle) * 0.5;
+      });
+      if (chipAntennaOrb) {
+        chipAntennaOrb.scale.setScalar(0.9 + Math.sin(time * 7.0) * 0.18);
+      }
 
       // Dishwasher vibration & steam
       const dwVibrate = (time > 0.5 && time < 4.5) || (time > 11.0 && time < 16.0) || time > 26.0;
