@@ -99,52 +99,97 @@
     room.add(desk);
     scene.add(room);
 
-    // --- 3D SMART DISHWASHER ---
-    const dishwasher = new THREE.Group();
-    dishwasher.position.set(1.85, 0, -1.35);
+    // --- KITCHEN SINK & OVERFLOWING TRASH (EPISODE 1 PROPS) ---
+    const kitchenProp = new THREE.Group();
+    kitchenProp.position.set(1.85, 0, -1.35);
 
-    const dwBody = new THREE.Mesh(
-      new THREE.BoxGeometry(1.2, 1.4, 1.1),
-      new THREE.MeshStandardMaterial({ color: 0x2a3344, metalness: 0.8, roughness: 0.25 })
+    const counter = new THREE.Mesh(
+      new THREE.BoxGeometry(1.4, 0.95, 1.0),
+      new THREE.MeshStandardMaterial({ color: 0x1f2937, metalness: 0.4, roughness: 0.5 })
     );
-    dwBody.position.y = 0.7;
-    dwBody.castShadow = true;
-    dwBody.receiveShadow = true;
-    dishwasher.add(dwBody);
+    counter.position.y = 0.475;
+    counter.castShadow = true;
+    counter.receiveShadow = true;
+    kitchenProp.add(counter);
 
-    const door = new THREE.Mesh(
-      new THREE.BoxGeometry(1.05, 1.05, 0.05),
-      new THREE.MeshStandardMaterial({
-        color: 0x88ccff, metalness: 0.2, roughness: 0.1,
-        transparent: true, opacity: 0.85, emissive: 0x004488, emissiveIntensity: 0.4
-      })
+    const counterTop = new THREE.Mesh(
+      new THREE.BoxGeometry(1.46, 0.08, 1.06),
+      new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.3, roughness: 0.2 })
     );
-    door.position.set(0, 0.65, 0.56);
-    dishwasher.add(door);
+    counterTop.position.y = 0.98;
+    kitchenProp.add(counterTop);
 
-    const ledScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.12), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
-    ledScreen.position.set(0, 1.28, 0.56);
-    dishwasher.add(ledScreen);
-    scene.add(dishwasher);
+    // Chrome sink basin & faucet
+    const sinkBasin = new THREE.Mesh(
+      new THREE.BoxGeometry(0.75, 0.04, 0.55),
+      new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.15 })
+    );
+    sinkBasin.position.set(0, 1.01, 0);
+    const faucet = new THREE.Mesh(
+      new THREE.TorusGeometry(0.14, 0.02, 8, 16, Math.PI),
+      new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.1 })
+    );
+    faucet.position.set(0, 1.05, -0.2);
+    kitchenProp.add(sinkBasin, faucet);
 
-    // --- DRY ICE PARTICLES ---
-    const particleCount = 180;
+    // Overflowing trash bin beside counter with white porcelain shards
+    const trashBin = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28, 0.22, 0.72, 18),
+      new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.6, roughness: 0.4 })
+    );
+    trashBin.position.set(-0.98, 0.36, 0.15);
+    trashBin.castShadow = true;
+    const trashBag = new THREE.Mesh(
+      new THREE.SphereGeometry(0.27, 14, 12),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.6 })
+    );
+    trashBag.position.set(-0.98, 0.72, 0.15);
+    kitchenProp.add(trashBin, trashBag);
+
+    for (let s = 0; s < 3; s++) {
+      const shard = new THREE.Mesh(
+        new THREE.ConeGeometry(0.06, 0.16, 4),
+        new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.15 })
+      );
+      shard.position.set(-0.98 + (s - 1) * 0.08, 0.92, 0.15 + (s % 2) * 0.06);
+      shard.rotation.set((s - 1) * 0.3, s * 0.7, (s - 1) * 0.4);
+      kitchenProp.add(shard);
+    }
+    scene.add(kitchenProp);
+
+    // Floating 3D Holographic Card (visible during Chip's optimization pitches)
+    const holoGroup = new THREE.Group();
+    holoGroup.position.set(0.85, 1.55, 0.15);
+    const holoRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.32, 0.012, 12, 36),
+      new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.75 })
+    );
+    const holoCore = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.14, 0),
+      new THREE.MeshBasicMaterial({ color: 0x22c55e, wireframe: true, transparent: true, opacity: 0.85 })
+    );
+    holoGroup.add(holoRing, holoCore);
+    holoGroup.visible = false;
+    scene.add(holoGroup);
+
+    // --- AMBIENT CYBER DUST PARTICLES ---
+    const particleCount = 90;
     const particleGeo = new THREE.BufferGeometry();
     const particlePositions = new Float32Array(particleCount * 3);
     const particleVels = [];
     for (let i = 0; i < particleCount; i++) {
-      particlePositions[i * 3 + 0] = 1.85 + (Math.random() - 0.5) * 1.1;
-      particlePositions[i * 3 + 1] = 0.2 + Math.random() * 0.8;
-      particlePositions[i * 3 + 2] = -0.7 + Math.random() * 1.3;
+      particlePositions[i * 3 + 0] = (Math.random() - 0.5) * 6.0;
+      particlePositions[i * 3 + 1] = 0.2 + Math.random() * 2.8;
+      particlePositions[i * 3 + 2] = -2.0 + Math.random() * 3.5;
       particleVels.push({
-        x: (Math.random() - 0.5) * 0.015,
-        y: 0.008 + Math.random() * 0.016,
-        z: 0.01 + Math.random() * 0.018
+        x: (Math.random() - 0.5) * 0.004,
+        y: 0.002 + Math.random() * 0.005,
+        z: (Math.random() - 0.5) * 0.004
       });
     }
     particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
     const steamParticles = new THREE.Points(particleGeo, new THREE.PointsMaterial({
-      color: 0xccf0ff, size: 0.075, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending
+      color: 0x67e8f9, size: 0.035, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending
     }));
     scene.add(steamParticles);
 
@@ -155,6 +200,7 @@
     let leoMixer = null;
     let leoActions = {};
     let leoMorphMeshes = [];
+    let leoHeadBone = null;
     let coffeeSteam = [];
 
     let chipRoot = null;
@@ -162,6 +208,7 @@
     let chipActions = {};
     let chipMorphMeshes = [];
     let chipAntennaOrb = null;
+    let chipMouthBar = null;
 
     function loadGLB(url) {
       return new Promise((resolve, reject) => {
@@ -178,10 +225,9 @@
     ]).then(([leoGltf, idleGltf, talkGltf, exprGltf, chipGltf]) => {
       // 1. Setup Leo (Ready Player Me Rigged Humanoid)
       leoRoot = leoGltf.scene;
-      leoRoot.position.set(-0.75, 0, 0.25);
-      leoRoot.rotation.y = 0.28;
+      leoRoot.position.set(-0.72, 0, 0.28);
+      leoRoot.rotation.y = 0.52;
       leoRoot.scale.setScalar(1.0);
-      let leoHeadBone = null;
       let leoRightHandBone = null;
       leoRoot.traverse(obj => {
         if (obj.isMesh) {
@@ -272,8 +318,8 @@
 
       // 2. Setup Chip (Expressive Rigged 3D Robot)
       chipRoot = chipGltf.scene;
-      chipRoot.position.set(0.85, 0, 0.35);
-      chipRoot.rotation.y = -0.35;
+      chipRoot.position.set(0.82, 0, 0.35);
+      chipRoot.rotation.y = -0.58;
       chipRoot.scale.setScalar(0.36);
       let chipHeadBone = null;
       chipRoot.traverse(obj => {
@@ -290,7 +336,7 @@
       });
       scene.add(chipRoot);
 
-      // Attach glowing cyan beacon antenna to Chip's Head bone
+      // Attach glowing cyan beacon antenna & LED voice bar to Chip's Head bone
       if (chipHeadBone) {
         const antGroup = new THREE.Group();
         antGroup.position.set(0, 1.35, 0);
@@ -306,6 +352,14 @@
         chipAntennaOrb.position.y = 0.48;
         antGroup.add(stem, chipAntennaOrb);
         chipHeadBone.add(antGroup);
+
+        // Glowing LED mouth bar for crisp robotic lip-sync
+        chipMouthBar = new THREE.Mesh(
+          new THREE.BoxGeometry(0.55, 0.08, 0.08),
+          new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+        );
+        chipMouthBar.position.set(0, 0.22, 0.78);
+        chipHeadBone.add(chipMouthBar);
       }
 
       chipMixer = new THREE.AnimationMixer(chipRoot);
@@ -317,10 +371,18 @@
       });
     });
 
-    function setExclusiveWeight(actionsMap, activeName) {
+    function setBlendedWeights(actionsMap, prevName, nextName, blendProgress) {
       Object.keys(actionsMap).forEach(name => {
-        if (actionsMap[name]) {
-          actionsMap[name].setEffectiveWeight(name === activeName ? 1.0 : 0.0);
+        const act = actionsMap[name];
+        if (!act) return;
+        if (prevName === nextName) {
+          act.setEffectiveWeight(name === nextName ? 1.0 : 0.0);
+        } else if (name === nextName) {
+          act.setEffectiveWeight(blendProgress);
+        } else if (name === prevName) {
+          act.setEffectiveWeight(1.0 - blendProgress);
+        } else {
+          act.setEffectiveWeight(0.0);
         }
       });
     }
@@ -336,17 +398,31 @@
       });
     }
 
+    function getSmoothedAmp(env, time) {
+      if (!env || !env.length) return 0;
+      const f = time * 30;
+      const i0 = Math.min(env.length - 1, Math.max(0, Math.floor(f) - 1));
+      const i1 = Math.min(env.length - 1, Math.max(0, Math.floor(f)));
+      const i2 = Math.min(env.length - 1, Math.max(0, Math.floor(f) + 1));
+      return (env[i0] * 0.25 + env[i1] * 0.5 + env[i2] * 0.25);
+    }
+
     // --- CAMERA MODE ---
     Sitcom3D.cameraMode = 'director';
     Sitcom3D.setCameraMode = function(mode) {
       Sitcom3D.cameraMode = mode;
     };
 
-    // --- ANIMATION TIMELINE ---
+    // --- ANIMATION TIMELINE (EXACT MATCH TO master_audio.wav) ---
+    // 0.0 - 5.9s  : Leo Line 1 ("Chip... why is the sink completely empty, but the trash weighs forty pounds?")
+    // 5.9 - 14.6s : Chip Line 2 ("Scrubbing pans costs $14.20 in lost billable hours!")
+    // 14.6 - 19.6s: Leo Line 3 ("Did you throw away Grandma's porcelain bowls?!")
+    // 19.6 - 26.0s: Chip Line 4 ("Zero dishwasher compatibility! Ordered 5,000 paper plates!")
+    // 26.0 - 28.8s: Leo Line 5 ("I am going to unplug your router.")
     Sitcom3D.updateFrame = function(time) {
       const env = root.AUDIO_ENVELOPE || [];
-      const fIdx = Math.min(env.length - 1, Math.max(0, Math.floor(time * 30)));
-      const audioAmp = env.length ? env[fIdx] : 0;
+      const rawAmp = getSmoothedAmp(env, time);
+      const lipAmp = Math.min(1.0, Math.max(0.0, (rawAmp - 0.015) * 4.2));
 
       // Animate coffee steam wisps & Chip antenna beacon
       coffeeSteam.forEach((wisp, idx) => {
@@ -359,100 +435,174 @@
         chipAntennaOrb.scale.setScalar(0.9 + Math.sin(time * 7.0) * 0.18);
       }
 
-      // Dishwasher vibration & steam
-      const dwVibrate = (time > 0.5 && time < 4.5) || (time > 11.0 && time < 16.0) || time > 26.0;
-      dishwasher.position.x = 1.85 + (dwVibrate ? (Math.random() - 0.5) * 0.02 : 0);
-      dishwasher.position.z = -1.35 + (dwVibrate ? (Math.random() - 0.5) * 0.02 : 0);
-
+      // Ambient cyber particles
       const posAttr = particleGeo.attributes.position;
       const posArray = posAttr.array;
       for (let i = 0; i < particleCount; i++) {
         posArray[i * 3 + 0] += particleVels[i].x;
         posArray[i * 3 + 1] += particleVels[i].y;
         posArray[i * 3 + 2] += particleVels[i].z;
-        if (posArray[i * 3 + 1] > 2.3) {
-          posArray[i * 3 + 0] = 1.85 + (Math.random() - 0.5) * 1.1;
+        if (posArray[i * 3 + 1] > 3.2) {
           posArray[i * 3 + 1] = 0.2;
-          posArray[i * 3 + 2] = -0.7 + Math.random() * 1.3;
         }
       }
       posAttr.needsUpdate = true;
 
-      // Character animation state selection
-      let leoState = 'idle';
-      let chipState = 'Idle';
-      let leoTalkAmp = 0;
+      // Hologram visibility & spin during Chip's explanations
+      const showHolo = (time >= 5.9 && time < 14.6) || (time >= 19.6 && time < 26.0);
+      holoGroup.visible = showHolo;
+      if (showHolo) {
+        holoGroup.position.y = 1.55 + Math.sin(time * 3.0) * 0.06;
+        holoRing.rotation.y = time * 2.2;
+        holoCore.rotation.x = time * 1.8;
+        holoCore.rotation.y = time * 2.5;
+      }
 
-      if (time >= 0.5 && time <= 4.6) {
-        leoState = 'talk';
-        leoTalkAmp = audioAmp > 0.05 ? audioAmp : Math.abs(Math.sin(time * 14)) * 0.5;
-        chipState = 'Idle';
-      } else if (time >= 5.0 && time <= 10.8) {
-        leoState = 'idle';
-        chipState = 'Wave';
-      } else if (time >= 11.2 && time <= 15.8) {
-        leoState = 'expr';
-        leoTalkAmp = audioAmp > 0.05 ? audioAmp : Math.abs(Math.sin(time * 15)) * 0.5;
-        chipState = 'No';
-      } else if (time >= 16.2 && time <= 22.4) {
-        leoState = 'idle';
-        chipState = 'ThumbsUp';
-      } else if (time >= 22.8 && time <= 25.5) {
-        leoState = 'talk';
-        leoTalkAmp = audioAmp > 0.05 ? audioAmp : 0.45;
-        chipState = 'Yes';
-      } else if (time > 25.5) {
-        leoState = 'expr';
-        chipState = 'Dance';
+      // Beat-by-beat character acting, crossfading & lip-sync
+      let leoState = 'idle', leoPrev = 'idle', leoBlend = 1.0;
+      let chipState = 'Idle', chipPrev = 'Idle', chipBlend = 1.0;
+      let leoSpeaking = false;
+      let chipSpeaking = false;
+      let leoBrow = 0.0;
+      let chipAngry = 0.0, chipSurprised = 0.0, chipSad = 0.0;
+
+      if (time < 5.9) {
+        // Beat 1: Leo asks exasperatedly
+        leoSpeaking = true;
+        leoState = 'talk'; leoPrev = 'idle';
+        leoBlend = Math.min(1.0, time / 0.35);
+        leoBrow = 0.55;
+        chipState = 'Idle'; chipPrev = 'Idle';
+      } else if (time < 14.6) {
+        // Beat 2: Chip pitches $14.20 metric
+        chipSpeaking = true;
+        const bt = time - 5.9;
+        leoState = 'idle'; leoPrev = 'talk';
+        leoBlend = Math.min(1.0, bt / 0.35);
+        leoBrow = 0.35;
+        chipState = bt < 4.5 ? 'Wave' : 'Yes';
+        chipPrev = bt < 4.5 ? 'Idle' : 'Wave';
+        chipBlend = Math.min(1.0, (bt < 4.5 ? bt : bt - 4.5) / 0.3);
+        chipSurprised = 0.15 + lipAmp * 0.75;
+      } else if (time < 19.6) {
+        // Beat 3: Leo panics about Grandma's porcelain bowls
+        leoSpeaking = true;
+        const bt = time - 14.6;
+        leoState = 'expr'; leoPrev = 'idle';
+        leoBlend = Math.min(1.0, bt / 0.25);
+        leoBrow = 0.95;
+        chipState = 'No'; chipPrev = 'Yes';
+        chipBlend = Math.min(1.0, bt / 0.25);
+        chipAngry = 0.3;
+      } else if (time < 26.0) {
+        // Beat 4: Chip proudly announces 5,000 paper plates
+        chipSpeaking = true;
+        const bt = time - 19.6;
+        leoState = 'idle'; leoPrev = 'expr';
+        leoBlend = Math.min(1.0, bt / 0.3);
+        leoBrow = 0.7;
+        chipState = bt < 3.4 ? 'ThumbsUp' : 'Dance';
+        chipPrev = bt < 3.4 ? 'No' : 'ThumbsUp';
+        chipBlend = Math.min(1.0, (bt < 3.4 ? bt : bt - 3.4) / 0.3);
+        chipSurprised = 0.2 + lipAmp * 0.8;
+      } else {
+        // Beat 5: Deadpan finale ("I am going to unplug your router.")
+        leoSpeaking = time < 28.4;
+        const bt = time - 26.0;
+        leoState = 'idle'; leoPrev = 'idle';
+        leoBrow = 1.0;
+        chipState = 'Idle'; chipPrev = 'Dance';
+        chipBlend = Math.min(1.0, bt / 0.3);
+        chipSad = 0.85;
       }
 
       if (leoMixer) {
-        setExclusiveWeight(leoActions, leoState);
+        setBlendedWeights(leoActions, leoPrev, leoState, leoBlend);
         leoMixer.setTime(time);
-        // Blink & audio lip-sync on morph targets if present
-        const blinkCycle = time % 3.7;
-        const blinkVal = (blinkCycle > 3.56 && blinkCycle < 3.68) ? 1.0 : 0.0;
-        setMorph(leoMorphMeshes, ['eyeBlinkLeft', 'eyeBlinkRight', 'eyesClosed'], blinkVal);
-        setMorph(leoMorphMeshes, ['jawOpen', 'mouthOpen', 'viseme_aa'], leoTalkAmp * 0.85);
+
+        // Turn Leo's body/head naturally toward Chip, or deadpan to camera at finale
+        if (time >= 26.0) {
+          const p = Math.min(1.0, (time - 26.0) / 0.35);
+          leoRoot.rotation.y = 0.52 * (1.0 - p) + 0.08 * p;
+        } else {
+          leoRoot.rotation.y = 0.52;
+        }
+
+        // Morph targets: real sculpted 3D jawOpen lip-sync + blink + browAngry
+        const blinkCycle = time % 3.4;
+        const blinkVal = (blinkCycle > 3.24 && blinkCycle < 3.36) ? 1.0 : 0.0;
+        const jawVal = leoSpeaking ? Math.min(1.0, lipAmp * 0.95) : 0.0;
+        setMorph(leoMorphMeshes, ['eyeBlink'], blinkVal);
+        setMorph(leoMorphMeshes, ['jawOpen'], jawVal);
+        setMorph(leoMorphMeshes, ['browAngry'], leoBrow);
+
+        if (leoHeadBone && time < 26.0) {
+          leoHeadBone.rotation.y += leoSpeaking ? Math.sin(time * 3.0) * 0.04 : 0.06;
+          leoHeadBone.rotation.x += leoSpeaking ? jawVal * 0.05 : 0.0;
+        }
       }
 
       if (chipMixer) {
         if (!chipActions[chipState]) chipState = 'Idle';
-        setExclusiveWeight(chipActions, chipState);
+        if (!chipActions[chipPrev]) chipPrev = 'Idle';
+        setBlendedWeights(chipActions, chipPrev, chipState, chipBlend);
         chipMixer.setTime(time);
-        const chipAngry = (time >= 11.2 && time <= 15.8) ? 0.4 : 0.0;
-        const chipSurprised = (time >= 5.0 && time <= 10.8) ? 0.5 : 0.0;
         setMorph(chipMorphMeshes, ['Angry'], chipAngry);
         setMorph(chipMorphMeshes, ['Surprised'], chipSurprised);
+        setMorph(chipMorphMeshes, ['Sad'], chipSad);
+
+        if (chipMouthBar) {
+          const barScaleY = chipSpeaking ? (0.5 + lipAmp * 3.2) : 0.35;
+          chipMouthBar.scale.set(1.0, barScaleY, 1.0);
+          chipMouthBar.material.color.setHex(chipSpeaking ? 0x00ffff : (chipSad > 0.5 ? 0xf59e0b : 0x00aaff));
+        }
       }
 
-      // Camera system
+      // --- DIRECTOR CUT CAMERA CHOREOGRAPHY (7 TIGHT BEATS) ---
       if (Sitcom3D.cameraMode === 'showcase') {
         camera.position.set(0.05, 1.32, 5.25);
         camera.lookAt(0.05, 1.02, 0.3);
       } else if (Sitcom3D.cameraMode === 'director') {
-        if (time < 4.5) {
-          const p = time / 4.5;
-          camera.position.set(-0.3 + p * 0.3, 1.6 - p * 0.1, 4.6 - p * 0.5);
-          camera.lookAt(0.1, 1.2, 0.2);
-        } else if (time < 9.5) {
-          const p = (time - 4.5) / 5.0;
-          camera.position.set(-0.5 + p * 0.08, 1.55, 1.75 - p * 0.2);
-          camera.lookAt(-0.75, 1.52, 0.25);
-        } else if (time < 16.0) {
-          const p = (time - 9.5) / 6.5;
-          camera.position.set(0.75 + Math.sin(p * 2.0) * 0.15, 1.25, 2.35 - p * 0.15);
-          camera.lookAt(0.85, 0.95, 0.35);
-        } else if (time < 21.0) {
-          camera.position.set(-0.1, 1.5, 3.4);
-          camera.lookAt(0.1, 1.15, 0.25);
-        } else if (time < 26.5) {
-          const p = (time - 21.0) / 5.5;
-          camera.position.set(0.75, 0.95 + p * 0.15, 2.1);
-          camera.lookAt(0.85, 0.95, 0.35);
+        if (time < 2.2) {
+          // Shot 1: Wide Establishing Two-Shot (Leo, Chip, Sink & Overflowing Trash)
+          const p = time / 2.2;
+          camera.position.set(-0.2 + p * 0.25, 1.58, 4.4 - p * 0.35);
+          camera.lookAt(0.1, 1.15, 0.15);
+        } else if (time < 5.9) {
+          // Shot 2: Over-the-Shoulder Medium Close-Up on Leo
+          const p = (time - 2.2) / 3.7;
+          camera.position.set(-0.15 + p * 0.05, 1.56, 1.65 - p * 0.18);
+          camera.lookAt(-0.70, 1.52, 0.28);
+        } else if (time < 11.2) {
+          // Shot 3: Medium Close-Up on Chip + Floating 3D Holo Chart
+          const p = (time - 5.9) / 5.3;
+          camera.position.set(0.35 + p * 0.12, 1.18, 2.05 - p * 0.15);
+          camera.lookAt(0.82, 0.98, 0.35);
+        } else if (time < 14.6) {
+          // Shot 4: Quick Reaction Cutaway on Leo listening in disbelief
+          const p = (time - 11.2) / 3.4;
+          camera.position.set(-0.22, 1.58, 1.75 - p * 0.1);
+          camera.lookAt(-0.72, 1.54, 0.28);
+        } else if (time < 19.6) {
+          // Shot 5: Dramatic Push-In Close-Up on Leo ("Grandma's porcelain bowls?!")
+          const p = (time - 14.6) / 5.0;
+          camera.position.set(-0.28, 1.57, 1.55 - p * 0.22);
+          camera.lookAt(-0.72, 1.54, 0.28);
+        } else if (time < 26.0) {
+          // Shot 6: Low-Angle Hero Shot on Chip ("Ordered 5,000 paper plates!")
+          const p = (time - 19.6) / 6.4;
+          camera.position.set(0.42, 0.78 + p * 0.18, 1.95 - p * 0.15);
+          camera.lookAt(0.82, 0.95, 0.35);
         } else {
-          camera.position.set(0, 1.55, 4.4);
-          camera.lookAt(0.05, 1.15, 0.3);
+          // Shot 7: Deadpan Close-Up -> Two-Shot Finale ("I am going to unplug your router.")
+          const p = (time - 26.0) / 2.8;
+          if (p < 0.65) {
+            camera.position.set(-0.52, 1.58, 1.48);
+            camera.lookAt(-0.72, 1.56, 0.28);
+          } else {
+            camera.position.set(0.05, 1.42, 3.6);
+            camera.lookAt(0.05, 1.15, 0.3);
+          }
         }
       }
 
