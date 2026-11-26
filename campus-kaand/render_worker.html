@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Kampus Kaand 3D Render Worker</title></head>
+<body style="background:#000; margin:0; padding:0; overflow:hidden;">
+  <canvas id="c3d" width="1280" height="720"></canvas>
+  <canvas id="ccomp" width="1280" height="720" style="display:none;"></canvas>
+
+  <script src="three.min.js"></script>
+  <script src="GLTFLoader.js"></script>
+  <script src="audio_envelope.js"></script>
+  <script src="engine_3d.js"></script>
+  <script>
+    const c3d = document.getElementById('c3d');
+    const ccomp = document.getElementById('ccomp');
+    const ctx = ccomp.getContext('2d');
+    const width = 1280, height = 720;
+
+    const show = Campus3D.init(c3d, width, height);
+    const meta = window.TIMELINE_META || { total_frames: 2581, outro_start: 82.26, timeline: [], slap_events: [] };
+
+    function drawFriendsTitle(ctx, title, subtitle, alpha) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.68)';
+      ctx.fillRect(0, 0, width, height);
+
+      const letters = title.split('');
+      const dotColors = ['#ef4444', '#facc15', '#38bdf8', '#22c55e', '#f97316', '#ef4444'];
+      ctx.font = '900 66px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      const stepX = 68;
+      const startX = width / 2 - ((letters.length - 1) * stepX) / 2;
+      letters.forEach((ch, idx) => {
+        if (ch !== ' ') {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(ch, startX + idx * stepX, height / 2 - 10);
+          if (idx < letters.length - 1 && letters[idx + 1] !== ' ') {
+            ctx.fillStyle = dotColors[idx % dotColors.length];
+            ctx.beginPath();
+            ctx.arc(startX + idx * stepX + stepX / 2, height / 2 - 28, 7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      });
+
+      ctx.font = 'bold 26px Arial, sans-serif';
+      ctx.fillStyle = '#fde047';
+      ctx.fillText(subtitle, width / 2, height / 2 + 52);
+      ctx.restore();
+    }
+
+    function drawOverlay(time) {
+      ctx.drawImage(c3d, 0, 0);
+
+      // Slap Comic Flash + Impact Text!
+      const activeSlap = (meta.slap_events || []).find(([n, ts]) => time >= ts && time < ts + 0.35);
+      if (activeSlap) {
+        const dt = time - activeSlap[1];
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, 0.38 - dt)})`;
+        ctx.fillRect(0, 0, width, height);
+        ctx.font = '900 64px Arial, sans-serif';
+        ctx.fillStyle = '#ef4444';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 6;
+        ctx.textAlign = 'center';
+        const label = activeSlap[0].includes('door') ? 'BONK!!' : 'CHATAAK!!';
+        ctx.strokeText(label, width / 2 + 120, 210);
+        ctx.fillText(label, width / 2 + 120, 210);
+        ctx.restore();
+      }
+
+      // Cold Open Title Card (0.0 - 3.0s)
+      if (time < 3.0) {
+        const alpha = time < 2.2 ? 1.0 : Math.max(0.0, (3.0 - time) / 0.8);
+        drawFriendsTitle(ctx, 'KAMPUS KAAND', 'EPISODE 1  •  THAPPAD MAGNET (HINGLISH)', alpha);
+        return;
+      }
+
+      // Outro Credits Card
+      if (time >= meta.outro_start) {
+        const alpha = Math.min(1.0, (time - meta.outro_start) / 0.6);
+        drawFriendsTitle(ctx, 'KAMPUS KAAND', 'CREATED BY BILAL  •  SUBSCRIBE FOR EPISODE 2!', alpha);
+        return;
+      }
+
+      // Clean Cinema Subtitles
+      const match = (meta.timeline || []).find(s => time >= s.start && time <= s.end);
+      if (match) {
+        const spkColor = match.speaker === 'aarav' ? '#facc15' : (match.speaker === 'rohan' ? '#38bdf8' : '#ef4444');
+        const spkLabel = match.speaker === 'aarav' ? 'AARAV' : (match.speaker === 'rohan' ? 'ROHAN' : 'SENIOR BHAIYA');
+        ctx.save();
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.86)';
+        ctx.strokeStyle = spkColor;
+        ctx.lineWidth = 2.5;
+        const boxW = 980, boxH = 88;
+        const bx = (width - boxW) / 2, by = height - 115;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, boxW, boxH, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 16px Arial, sans-serif';
+        ctx.fillStyle = spkColor;
+        ctx.fillText(spkLabel, bx + 24, by + 28);
+
+        ctx.font = '600 24px Arial, sans-serif';
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillText(match.subtitle, bx + 24, by + 64);
+        ctx.restore();
+      }
+    }
+
+    const totalFrames = meta.total_frames;
+    let currentFrame = 0;
+
+    async function processNextFrame() {
+      if (currentFrame >= totalFrames) {
+        await fetch('/done', { method: 'POST' });
+        return;
+      }
+      const t = currentFrame / 30.0;
+      show.updateFrame(t);
+      drawOverlay(t);
+
+      ccomp.toBlob(async (blob) => {
+        await fetch('/frame?f=' + currentFrame, { method: 'POST', body: blob });
+        currentFrame++;
+        processNextFrame();
+      }, 'image/jpeg', 0.92);
+    }
+
+    window.addEventListener('load', async () => {
+      await show.ready;
+      setTimeout(processNextFrame, 250);
+    });
+  </script>
+</body>
+</html>

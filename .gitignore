@@ -1,5 +1,6 @@
 # Dependencies & Temp
 node_modules/
+_skills_ref/
 .env
 __pycache__/
 *.pyc

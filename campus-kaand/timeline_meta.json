@@ -1,0 +1,145 @@
+{
+  "total_dur": 86.06,
+  "total_frames": 2581,
+  "outro_start": 82.256,
+  "timeline": [
+    {
+      "id": "01_aarav_intro",
+      "speaker": "aarav",
+      "start": 3.0,
+      "end": 10.44,
+      "dur": 7.44,
+      "laugh_start": null,
+      "laugh_end": null,
+      "laugh_int": 0.0,
+      "applause": false,
+      "subtitle": "Yaar Rohan, college ka pehla din hai! Bas aaj koi lafda na ho, full chill vibes!"
+    },
+    {
+      "id": "02_rohan_slap1",
+      "speaker": "rohan",
+      "start": 11.14,
+      "end": 16.444,
+      "dur": 5.304,
+      "laugh_start": 16.524,
+      "laugh_end": 17.924,
+      "laugh_int": 0.24,
+      "applause": false,
+      "subtitle": "OUCH! Bhai, tune abhi-abhi mujhe backhand thappad maara?!"
+    },
+    {
+      "id": "03_aarav_excuse",
+      "speaker": "aarav",
+      "start": 17.994,
+      "end": 25.338,
+      "dur": 7.344,
+      "laugh_start": null,
+      "laugh_end": null,
+      "laugh_int": 0.0,
+      "applause": false,
+      "subtitle": "Arre woh toh excitement mein lag gaya! Andar chal, yahan sab bahut shareef log hain!"
+    },
+    {
+      "id": "04_senior_slap2",
+      "speaker": "senior",
+      "start": 25.738,
+      "end": 30.538,
+      "dur": 4.8,
+      "laugh_start": null,
+      "laugh_end": null,
+      "laugh_int": 0.0,
+      "applause": false,
+      "subtitle": "Abe Chintu! Mera assignment kahan hai?!"
+    },
+    {
+      "id": "05_senior_oops",
+      "speaker": "senior",
+      "start": 31.138,
+      "end": 39.01,
+      "dur": 7.872,
+      "laugh_start": 39.09,
+      "laugh_end": 40.59,
+      "laugh_int": 0.28,
+      "applause": false,
+      "subtitle": "Arre... tu Chintu nahi hai? Sorry chote, same haircut hai!"
+    },
+    {
+      "id": "06_rohan_haircut",
+      "speaker": "rohan",
+      "start": 40.66,
+      "end": 47.5,
+      "dur": 6.84,
+      "laugh_start": 47.58,
+      "laugh_end": 48.88,
+      "laugh_int": 0.25,
+      "applause": false,
+      "subtitle": "Mera haircut meri jaan le lega aaj! Main ab har insaan se 10 foot door chalunga!"
+    },
+    {
+      "id": "07_aarav_door",
+      "speaker": "aarav",
+      "start": 49.55,
+      "end": 54.326,
+      "dur": 4.776,
+      "laugh_start": 54.406,
+      "laugh_end": 56.006,
+      "laugh_int": 0.3,
+      "applause": false,
+      "subtitle": "Bro, ab toh non-living darwaazon ko bhi tujhse problem hai!"
+    },
+    {
+      "id": "08_rohan_safe",
+      "speaker": "rohan",
+      "start": 56.126,
+      "end": 63.11,
+      "dur": 6.984,
+      "laugh_start": null,
+      "laugh_end": null,
+      "laugh_int": 0.0,
+      "applause": false,
+      "subtitle": "Chalo finally, open-air canteen! Yahan na koi senior hai, na koi darwaaza..."
+    },
+    {
+      "id": "09_rohan_curse",
+      "speaker": "rohan",
+      "start": 63.91,
+      "end": 70.918,
+      "dur": 7.008,
+      "laugh_start": 70.998,
+      "laugh_end": 72.898,
+      "laugh_int": 0.34,
+      "applause": false,
+      "subtitle": "Universe ne mere gaal par kya contract sign kiya hai?! Ek bandar bhi maar ke chala gaya!"
+    },
+    {
+      "id": "10_aarav_finale",
+      "speaker": "aarav",
+      "start": 72.968,
+      "end": 79.256,
+      "dur": 6.288,
+      "laugh_start": 79.336,
+      "laugh_end": 82.136,
+      "laugh_int": 0.36,
+      "applause": true,
+      "subtitle": "Welcome to college life bro! Chal, garma-garam samosa khaate hain!"
+    }
+  ],
+  "slap_events": [
+    [
+      "slap1_accident",
+      10.64
+    ],
+    [
+      "slap2_senior",
+      30.708000000000002
+    ],
+    [
+      "slap3_door",
+      49.0
+    ],
+    [
+      "slap4_monkey",
+      63.36
+    ]
+  ]
+}
