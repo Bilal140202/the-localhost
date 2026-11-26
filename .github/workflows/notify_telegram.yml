@@ -5,10 +5,10 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      release_url:
-        description: "Release URL to share"
+      release_tag:
+        description: "Release tag to download and send to Telegram"
         required: false
-        default: "https://github.com/Bilal140202/the-localhost/releases"
+        default: "v1.2.0-ep1"
 
 jobs:
   notify:
@@ -17,14 +17,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Download release MP4 asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.release_tag }}
+        run: |
+          gh release download "$TAG" -p "*.mp4" -D /tmp/release_assets
+          ls -lh /tmp/release_assets
 
-      - name: Send Telegram Release Notification
+      - name: Send MP4 Video to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          RELEASE_URL: ${{ github.event.release.html_url || github.event.inputs.release_url }}
-        run: python 3d/send_3d_to_telegram.py
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.release_tag }}
+        run: |
+          VIDEO_FILE=$(ls /tmp/release_assets/*.mp4 | head -n 1)
+          curl -f -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendVideo" \
+            -F "chat_id=${TELEGRAM_CHAT_ID}" \
+            -F "caption=🎬 The Localhost — Episode 1: 'The Dish Dilemma' (${TAG})" \
+            -F "supports_streaming=true" \
+            -F "video=@${VIDEO_FILE}"
